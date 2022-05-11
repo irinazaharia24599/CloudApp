@@ -3,43 +3,61 @@ const mysql = require("mysql");
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  connection.query("SELECT * FROM messages", (err, results) => {
-    if (err) {
-      return res.send(err);
-    }
+const { analyzeText, analyzeSyntax } = require("../functions/languageFunctions.js");
 
-    return res.json({
-      messages: results,
+
+router.get("/", (req, res) => {
+    connection.query("SELECT * FROM messages", (err, results) => {
+        if (err) {
+            return res.send(err);
+        }
+
+        return res.json({
+            messages: results,
+        });
     });
-  });
 });
 
-router.post("/messages", (req, res) => {
+router.post("/", async(req, res) => {
     const {
-      owner,
-      textContent
+        owner,
+        textContent
     } = req.body;
-  
-    if (!owner || !textContent ) {
-      return res.status(400).send("Bad request. Missing parameters.");
+
+    if (!owner || !textContent) {
+        return res.status(400).send("Bad request. Missing parameters.");
     }
-  
-    const queryString = `INSERT INTO messages (owner, textContent) VALUES (${mysql.escape(owner)},  ${mysql.escape(textContent)})`;
-  
+
+    let sentimentScore = await analyzeText(textContent);
+    // console.log("ANALIZA: " + sentimentScore)
+
+    const queryString = `INSERT INTO messages (owner, textContent, sentimentScore) VALUES (${mysql.escape(owner)},  ${mysql.escape(textContent)},${mysql.escape(sentimentScore)} )`;
+
     connection.query(queryString, (err, results) => {
-      if (err) {
-        return res.send(err);
-      }
-  
-      return res.json({
-        data: results,
-      });
+        if (err) {
+            return res.send(err);
+        }
+
+        return res.json({
+            data: results,
+        });
     });
-  });
+});
 
+router.get("/analysis", async (req, res) => {
+    const { textContent } = req.body;
 
-  router.get("/:id", (req, res) => {
+    if (!textContent) {
+        return res.status(400).send("Missing parameters");
+    }
+
+    const analysis = await analyzeText(textContent);
+    return res.json({
+        analyzedText: analysis
+    })
+});
+
+router.get("/:id", (req, res) => {
     const { id } = req.params;
     if (!id) {
         return res.status(400).send("Bad request. Missing parameters.");
@@ -90,7 +108,7 @@ router.put("/:id", (req, res) => {
     if (!owner || !textContent) {
         return res.status(400).send("Bad request. Missing parameters.");
     }
-    const queryString = `UPDATE messages SET owner = ${mysql.escape(owner)}, messageContent = ${mysql.escape(messageContent)} WHERE entryID = ${mysql.escape(id)}`;
+    const queryString = `UPDATE messages SET owner = ${mysql.escape(owner)}, textContent = ${mysql.escape(textContent)} WHERE entryID = ${mysql.escape(id)}`;
     connection.query(queryString, (err, results) => {
         if (err) {
             return res.send(err);
@@ -105,6 +123,7 @@ router.put("/:id", (req, res) => {
     );
 }
 );
+
 
 
 module.exports = router;
