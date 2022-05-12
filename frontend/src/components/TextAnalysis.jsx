@@ -51,7 +51,6 @@ export default function MultilineTextFields() {
             >
                 <div>
                     <TextField
-                        id="filled-multiline-flexible"
                         label="Your name"
                         value={author}
                         onChange={handleChangeAuthor}
@@ -59,9 +58,9 @@ export default function MultilineTextFields() {
                         type="text"
                     />
                     <TextField
-                        id="filled-multiline-flexible"
                         label="Your message"
                         multiline
+                        rows={3}
                         maxRows={4}
                         value={text}
                         onChange={handleChangeText}

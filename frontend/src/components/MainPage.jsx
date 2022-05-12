@@ -3,6 +3,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from './AppBar.jsx';
 import TextAnalysis from './TextAnalysis.jsx';
 import MessageCard from './MessageCard.jsx';
+import Divider from '@mui/material/Divider';
+import Typography from '@mui/material/Typography';
+
 
 const useStyles = makeStyles((theme) => ({
     grid: {
@@ -28,7 +31,7 @@ function MainPage() {
         .then(result =>
             result.json()
         )
-        .then(data =>{
+        .then(data => {
             setMessageList(data.messages)
             //console.log(data.messages)
         }
@@ -38,8 +41,13 @@ function MainPage() {
         <div id="MainPage">
             <AppBar />
             <TextAnalysis />
+            <Divider variant="middle" sx={{ m: 2 }} />
+            <Typography variant="h4" gutterBottom component="div" color="text.secondary">
+                See what other users analyzed:
+            </Typography>
+
             <div className={classes.grid}>
-            {messageList.map((message) => <MessageCard message={message} />)}
+                {messageList.map((message) => <MessageCard message={message} />)}
             </div>
         </div>
     );
